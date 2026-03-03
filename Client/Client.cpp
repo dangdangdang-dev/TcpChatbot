@@ -1,4 +1,6 @@
 ﻿// main
+#include <string>
+#include <thread>
 #define WIN32_LEAN_AND_MEAN
 
 #include <iostream>
@@ -16,15 +18,28 @@
 #define DEFAULT_BUFLEN 512
 #define DEFAULT_PORT "27015"
 
+void receivedMessage(SOCKET ConnectSocket)
+{
+    char recvbuf[DEFAULT_BUFLEN];
+    int recvbuflen = DEFAULT_BUFLEN;
+
+    while (true)
+    {
+        int bytesReveived = recv(ConnectSocket, recvbuf, recvbuflen, 0);
+        if (bytesReveived <= 0)
+            break;
+
+        std::cout << "\n" << std::string(recvbuf, bytesReveived) << "\n";
+    }
+}
+
 int __cdecl main(int argc, char **argv)
 {
     WSADATA wsaData;
     SOCKET ConnectSocket = INVALID_SOCKET;
     struct addrinfo *result = NULL, *ptr = NULL, hints{};
     const char *sendbuf = "this is a test";
-    char recvbuf[DEFAULT_BUFLEN];
     int iResult;
-    int recvbuflen = DEFAULT_BUFLEN;
 
     // Validate the parameters
     if (argc != 2)
@@ -89,41 +104,25 @@ int __cdecl main(int argc, char **argv)
         return 1;
     }
 
+    std::thread recvThread(receivedMessage, ConnectSocket);
     // Send an initial buffer
-    iResult = send(ConnectSocket, sendbuf, (int)strlen(sendbuf), 0);
-    if (iResult == SOCKET_ERROR)
+    std::string input;
+    while (true)
     {
-        printf("send failed with error: %d\n", WSAGetLastError());
-        closesocket(ConnectSocket);
-        WSACleanup();
-        return 1;
+        std::cout << "> ";
+        std::getline(std::cin, input);
+        send(ConnectSocket, input.c_str(), input.size(), 0);
     }
 
-    printf("Bytes Sent: %d\n", iResult);
-
-    // shutdown the connection since no more data will be sent
-    iResult = shutdown(ConnectSocket, SD_SEND);
-    if (iResult == SOCKET_ERROR)
-    {
-        printf("shutdown failed with error: %d\n", WSAGetLastError());
-        closesocket(ConnectSocket);
-        WSACleanup();
-        return 1;
-    }
-
-    // Receive until the peer closes the connection
-    do
-    {
-
-        iResult = recv(ConnectSocket, recvbuf, recvbuflen, 0);
-        if (iResult > 0)
-            printf("Bytes received: %d\n", iResult);
-        else if (iResult == 0)
-            printf("Connection closed\n");
-        else
-            printf("recv failed with error: %d\n", WSAGetLastError());
-
-    } while (iResult > 0);
+    // // shutdown the connection since no more data will be sent
+    // iResult = shutdown(ConnectSocket, SD_SEND);
+    // if (iResult == SOCKET_ERROR)
+    // {
+    //     printf("shutdown failed with error: %d\n", WSAGetLastError());
+    //     closesocket(ConnectSocket);
+    //     WSACleanup();
+    //     return 1;
+    // }
 
     std::cout << "shutting down" << std::endl;
     // cleanup
