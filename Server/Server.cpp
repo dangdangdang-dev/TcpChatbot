@@ -4,6 +4,7 @@
 #include <iostream>
 #include <mutex>
 #include <stdio.h>
+#include <string>
 #include <thread>
 #include <vector>
 #include <winsock2.h>
@@ -16,6 +17,19 @@
 std::vector<SOCKET> _clients;
 std::mutex _clientsMutex;
 
+void broadcastMessage(const std::string &message, SOCKET sender)
+{
+    std::lock_guard<std::mutex> lock(_clientsMutex);
+
+    for (auto client : _clients)
+    {
+        if (client != sender)
+        {
+            send(client, message.c_str(), message.size(), 0);
+        }
+    }
+}
+
 void handleClient(SOCKET ClientSocket)
 {
     char recvbuf[DEFAULT_BUFLEN];
@@ -24,51 +38,25 @@ void handleClient(SOCKET ClientSocket)
 
     std::cout << "Client Connected" << std::endl;
 
-    do
+    while (true)
     {
-        std::cout << "intaking input" << std::endl;
         iResult = recv(ClientSocket, recvbuf, recvbuflen, 0);
-        if (iResult > 0)
-        {
-            printf("Bytes received: %d\n", iResult);
 
-            // Echo the buffer back to the sender
-            iSendResult = send(ClientSocket, recvbuf, iResult, 0);
-            if (iSendResult == SOCKET_ERROR)
-            {
-                printf("send failed: %d\n", WSAGetLastError());
-                closesocket(ClientSocket);
-                WSACleanup();
-                break;
-            }
-            printf("Bytes sent: %d\n", iSendResult);
-        }
-        else if (iResult == 0)
-        {
-            printf("Connection closing...\n");
+        if (iResult <= 0)
             break;
-        }
-        else
-        {
-            printf("recv failed: %d\n", WSAGetLastError());
-            closesocket(ClientSocket);
-            WSACleanup();
-            break;
-        }
-    } while (iResult > 0);
 
-    // shut down connection
-    iResult = shutdown(ClientSocket, SD_SEND);
-    if (iResult == SOCKET_ERROR)
-    {
-        printf("shutdown failed with error: %d\n", WSAGetLastError());
-        closesocket(ClientSocket);
-        WSACleanup();
-    }
+        std::string message(recvbuf, iResult);
+        std::cout << "Message: " << message << "\n";
 
+        broadcastMessage(message, ClientSocket);
+    };
     // cleanup
     closesocket(ClientSocket);
+
+    std::lock_guard<std::mutex> lock(_clientsMutex);
+    _clients.erase(std::remove(_clients.begin(), _clients.end(), ClientSocket), _clients.end());
 }
+
 int main()
 {
     WSADATA wsaData;
@@ -133,8 +121,7 @@ int main()
     }
     std::cout << "awaiting connection on port : " << DEFAULT_PORT << std::endl;
 
-    // client socket, currently single thread, only 1 connection can be accepted
-
+    // accept connection loop
     while (true)
     {
         SOCKET ClientSocket = accept(ListenSocket, NULL, NULL);
