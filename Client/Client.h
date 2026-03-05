@@ -1,8 +1,14 @@
-﻿// TcpChatbot.h : Include file for standard system include files,
-// or project specific include files.
+﻿#pragma once
 
-#pragma once
+#include <string>
+class Client
+{
+  public:
+    std::string username;
 
-#include <iostream>
-
-// TODO: Reference additional headers your program requires here.
+  private:
+    std::string getUsername()
+    {
+        return username;
+    }
+};

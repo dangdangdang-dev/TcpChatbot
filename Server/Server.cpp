@@ -1,75 +1,47 @@
-﻿// main
+#include "Server.h"
 #include <WS2tcpip.h>
-#include <WinSock2.h>
 #include <iostream>
+#include <minwindef.h>
 #include <mutex>
-#include <stdio.h>
+#include <ostream>
 #include <string>
-#include <thread>
-#include <vector>
 #include <winsock2.h>
 
-#pragma comment(lib, "Ws2_32.lib")
+int _result;
 
-#define DEFAULT_PORT "27015"
-#define DEFAULT_BUFLEN 512
-
-std::vector<SOCKET> _clients;
-std::mutex _clientsMutex;
-
-void broadcastMessage(const std::string &message, SOCKET sender)
+// WSA init
+WSA::WSA()
 {
-    std::lock_guard<std::mutex> lock(_clientsMutex);
-
-    for (auto client : _clients)
-    {
-        if (client != sender)
-        {
-            send(client, message.c_str(), message.size(), 0);
-        }
-    }
+    _result = WSAStartup(MAKEWORD(2, 2), &wsaData);
+    if (_result != 0)
+        throw std::runtime_error("WSAStartup failed");
 }
 
-void handleClient(SOCKET ClientSocket)
+WSA::~WSA()
 {
-    char recvbuf[DEFAULT_BUFLEN];
-    int iResult, iSendResult;
-    int recvbuflen = DEFAULT_BUFLEN;
-
-    std::cout << "Client Connected" << std::endl;
-
-    while (true)
-    {
-        iResult = recv(ClientSocket, recvbuf, recvbuflen, 0);
-
-        if (iResult <= 0)
-            break;
-
-        std::string message(recvbuf, iResult);
-        std::cout << "Message: " << message << "\n";
-
-        broadcastMessage(message, ClientSocket);
-    };
-    // cleanup
-    closesocket(ClientSocket);
-
-    std::lock_guard<std::mutex> lock(_clientsMutex);
-    _clients.erase(std::remove(_clients.begin(), _clients.end(), ClientSocket), _clients.end());
 }
 
-int main()
+// Server init
+Server::Server(const std::string &port) : port(port)
 {
-    WSADATA wsaData;
+    WSA wsaData;
+    init();
+}
+
+Server::~Server()
+{
+    WSACleanup();
+}
+
+void Server::start()
+{
+    awaitClientConnection();
+}
+
+void Server::init()
+{
     struct addrinfo *result = NULL, *ptr = NULL, hints{};
     int iResult;
-
-    // init winsock
-    iResult = WSAStartup(MAKEWORD(2, 2), &wsaData);
-    if (iResult != 0)
-    {
-        printf("WSAStartup failed : %d\n", iResult);
-        return 1;
-    }
 
     hints.ai_family = AF_INET6;
     hints.ai_socktype = SOCK_STREAM;
@@ -77,68 +49,148 @@ int main()
     hints.ai_flags = AI_PASSIVE;
 
     // addrinfo create -> iResult
-    iResult = getaddrinfo(NULL, DEFAULT_PORT, &hints, &result);
+    iResult = getaddrinfo(NULL, port.c_str(), &hints, &result);
     if (iResult != 0)
     {
         printf("Get addrinfo fail with error %d\n", iResult);
         WSACleanup();
-        return 1;
     }
 
     // listen socket create
-    SOCKET ListenSocket = socket(result->ai_family, result->ai_socktype, result->ai_protocol);
-    if (ListenSocket == INVALID_SOCKET)
+    listenSocket = socket(result->ai_family, result->ai_socktype, result->ai_protocol);
+    if (listenSocket == INVALID_SOCKET)
     {
         printf("Error at socket(): %d\n", WSAGetLastError());
         freeaddrinfo(result);
         WSACleanup();
-        return 1;
     }
 
     // disable ipv6 only
     int no = 0;
-    setsockopt(ListenSocket, IPPROTO_IPV6, IPV6_V6ONLY, (char *)&no, sizeof(no));
+    setsockopt(listenSocket, IPPROTO_IPV6, IPV6_V6ONLY, (char *)&no, sizeof(no));
 
     // bind listensocket
-    iResult = bind(ListenSocket, result->ai_addr, (int)result->ai_addrlen);
+    iResult = bind(listenSocket, result->ai_addr, (int)result->ai_addrlen);
     if (iResult == SOCKET_ERROR)
     {
         printf("bind failed with error: %d\n", WSAGetLastError());
         freeaddrinfo(result);
-        closesocket(ListenSocket);
+        closesocket(listenSocket);
         WSACleanup();
-        return 1;
     }
 
     freeaddrinfo(result);
 
-    if (listen(ListenSocket, SOMAXCONN) == SOCKET_ERROR)
+    if (listen(listenSocket, SOMAXCONN) == SOCKET_ERROR)
     {
         printf("Listen failed with error : %d\n", WSAGetLastError());
-        closesocket(ListenSocket);
+        closesocket(listenSocket);
         WSACleanup();
-        return 1;
     }
-    std::cout << "awaiting connection on port : " << DEFAULT_PORT << std::endl;
+}
 
-    // accept connection loop
+void Server::broadcastMessage(const std::string &message, ClientSession *sender)
+{
+    std::lock_guard<std::mutex> lock(clientsMutex);
+
+    for (auto client : clients)
+    {
+        if (client->ClientSocket != sender->ClientSocket)
+        {
+            send(client->ClientSocket, message.c_str(), message.size(), 0);
+        }
+    }
+}
+
+// handle client input per thread
+void Server::handleClient(ClientSession *client)
+{
+    char recvbuf[DEFAULT_BUFLEN];
+    int iResult, iSendResult;
+    int recvbuflen = DEFAULT_BUFLEN;
+    std::string pending;
+
+    // get username
+
     while (true)
     {
-        SOCKET ClientSocket = accept(ListenSocket, NULL, NULL);
+        iResult = recv(client->ClientSocket, recvbuf, recvbuflen, 0);
+        if (iResult <= 0)
+            break;
+
+        std::string username(recvbuf, iResult);
+        client->username = username;
+
+        if (client->username != "")
+            break;
+
+        // pending.append(recvbuf, iResult);
+        //
+        // size_t pos;
+        //
+        // while ((pos = pending.find('\n')) != std::string::npos)
+        // {
+        //     std::cout << "processing name" << std::endl;
+        //     std::string username = pending.substr(0, pos);
+        //     pending.erase(0, pos + 1);
+        //     client->username = username;
+        //     break;
+        // }
+    }
+
+    while (true)
+    {
+        iResult = recv(client->ClientSocket, recvbuf, recvbuflen, 0);
+        if (iResult <= 0)
+            break;
+
+        std::string message(recvbuf, iResult);
+        std::cout << client->username << ": " << message << "\n";
+
+        // pending.append(recvbuf, iResult);
+
+        // size_t pos;
+
+        // while ((pos = pending.find('\n')) != std::string::npos)
+        // {
+        //     std::string message = pending.substr(0, pos);
+        //     pending.erase(0, pos + 1);
+        //     broadcastMessage(message, client);
+        // }
+    }
+    // cleanup
+    closesocket(client->ClientSocket);
+
+    std::lock_guard<std::mutex> lock(clientsMutex);
+    clients.erase(std::remove(clients.begin(), clients.end(), client), clients.end());
+
+    // raw pointer what the fuck
+    delete client;
+}
+
+void Server::awaitClientConnection()
+{
+    std::cout << "awaiting connection on port : " << port << std::endl;
+
+    std::string username;
+    while (true)
+    {
+        SOCKET ClientSocket = accept(listenSocket, NULL, NULL);
         if (ClientSocket == INVALID_SOCKET)
         {
             printf("accept failed: %d\n", WSAGetLastError());
             continue;
         }
-        std::lock_guard<std::mutex> lock(_clientsMutex);
-        _clients.push_back(ClientSocket);
 
-        std::thread clientThread(handleClient, ClientSocket);
+        ClientSession *client = new ClientSession();
+        client->ClientSocket = ClientSocket;
+
+        std::cout << "Client connected with socket" << client->ClientSocket << std::endl;
+
+        std::lock_guard<std::mutex> lock(clientsMutex);
+        clients.push_back(client);
+
+        std::thread clientThread(&Server::handleClient, this, client);
         clientThread.detach();
     }
-
-    closesocket(ListenSocket);
-    WSACleanup();
-
-    return 0;
 }
