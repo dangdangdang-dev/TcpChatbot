@@ -91,7 +91,9 @@ void Server::init()
 
 void Server::broadcastMessage(const std::string &message, ClientSession *sender)
 {
+
     std::lock_guard<std::mutex> lock(clientsMutex);
+    std::cout << message << "\n";
 
     for (auto client : clients)
     {
@@ -117,25 +119,9 @@ void Server::handleClient(ClientSession *client)
         iResult = recv(client->ClientSocket, recvbuf, recvbuflen, 0);
         if (iResult <= 0)
             break;
-
         std::string username(recvbuf, iResult);
         client->username = username;
-
-        if (client->username != "")
-            break;
-
-        // pending.append(recvbuf, iResult);
-        //
-        // size_t pos;
-        //
-        // while ((pos = pending.find('\n')) != std::string::npos)
-        // {
-        //     std::cout << "processing name" << std::endl;
-        //     std::string username = pending.substr(0, pos);
-        //     pending.erase(0, pos + 1);
-        //     client->username = username;
-        //     break;
-        // }
+        break;
     }
 
     while (true)
@@ -145,18 +131,8 @@ void Server::handleClient(ClientSession *client)
             break;
 
         std::string message(recvbuf, iResult);
-        std::cout << client->username << ": " << message << "\n";
-
-        // pending.append(recvbuf, iResult);
-
-        // size_t pos;
-
-        // while ((pos = pending.find('\n')) != std::string::npos)
-        // {
-        //     std::string message = pending.substr(0, pos);
-        //     pending.erase(0, pos + 1);
-        //     broadcastMessage(message, client);
-        // }
+        message = client->username + ": " + message;
+        broadcastMessage(message, client);
     }
     // cleanup
     removeUser(client);
