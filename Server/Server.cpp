@@ -121,6 +121,8 @@ void Server::handleClient(ClientSession *client)
             break;
         std::string username(recvbuf, iResult);
         client->username = username;
+        std::string announcement = username + " has join the room";
+        broadcastMessage(announcement, client);
         break;
     }
 
@@ -155,7 +157,7 @@ void Server::awaitClientConnection()
         ClientSession *client = new ClientSession();
         client->ClientSocket = ClientSocket;
 
-        std::cout << "Client connected with socket" << client->ClientSocket << std::endl;
+        std::cout << username << "Client connected with socket" << ClientSocket << std::endl;
 
         std::lock_guard<std::mutex> lock(clientsMutex);
         clients.push_back(client);

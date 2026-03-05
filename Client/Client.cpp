@@ -121,13 +121,14 @@ void Client::receivedMessage()
     while (true)
     {
         bytesReveived = recv(ClientSocket, recvbuf, recvbuflen, 0);
-        std::string message(recvbuf, bytesReveived);
+
         if (bytesReveived <= 0)
         {
             disconnectServer();
             break;
         }
 
-        std::cout << "\n" << message << "\n";
+        std::string message(recvbuf, bytesReveived);
+        std::cout << "\n" << message << "\n" << "> ";
     }
 }
