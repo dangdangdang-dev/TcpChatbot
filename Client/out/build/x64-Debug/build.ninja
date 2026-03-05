@@ -57,6 +57,14 @@ build CMakeFiles\Client.dir\main.cpp.obj: CXX_COMPILER__Client_unscanned_Debug C
   TARGET_COMPILE_PDB = CMakeFiles\Client.dir\
   TARGET_PDB = Client.pdb
 
+build CMakeFiles\Client.dir\Client.cpp.obj: CXX_COMPILER__Client_unscanned_Debug C$:\Users\User\source\repos\TcpChatbot\Client\Client.cpp || cmake_object_order_depends_target_Client
+  CONFIG = Debug
+  FLAGS = /DWIN32 /D_WINDOWS /W3 /GR /EHsc /MDd /Ob0 /Od /RTC1 -std:c++20 -ZI
+  OBJECT_DIR = CMakeFiles\Client.dir
+  OBJECT_FILE_DIR = CMakeFiles\Client.dir
+  TARGET_COMPILE_PDB = CMakeFiles\Client.dir\
+  TARGET_PDB = Client.pdb
+
 
 # =============================================================================
 # Link build statements for EXECUTABLE target Client
@@ -65,7 +73,7 @@ build CMakeFiles\Client.dir\main.cpp.obj: CXX_COMPILER__Client_unscanned_Debug C
 #############################################
 # Link the executable Client.exe
 
-build Client.exe: CXX_EXECUTABLE_LINKER__Client_Debug CMakeFiles\Client.dir\main.cpp.obj
+build Client.exe: CXX_EXECUTABLE_LINKER__Client_Debug CMakeFiles\Client.dir\main.cpp.obj CMakeFiles\Client.dir\Client.cpp.obj
   CONFIG = Debug
   FLAGS = /DWIN32 /D_WINDOWS /W3 /GR /EHsc /MDd /Ob0 /Od /RTC1 -ZI
   LINK_FLAGS = /machine:x64 /debug /INCREMENTAL /subsystem:console
