@@ -4,7 +4,10 @@
 #include <ws2tcpip.h>
 
 #define DEFAULT_BUFLEN 512
+
+// 0 sucess, non 0 if fail
 int iResult;
+
 std::string getUsername()
 {
     std::string username{};
@@ -14,6 +17,11 @@ std::string getUsername()
         std::getline(std::cin, username);
     }
     return username;
+}
+
+void refreshLine()
+{
+    std::cout << "> ";
 }
 
 Client::Client(const std::string &port) : port(port)
@@ -39,7 +47,6 @@ void Client::init(char *serverName)
     hints.ai_socktype = SOCK_STREAM;
     hints.ai_protocol = IPPROTO_TCP;
 
-    // Resolve the server address and port
     iResult = getaddrinfo(serverName, port.c_str(), &hints, &result);
     if (iResult != 0)
     {
@@ -100,7 +107,7 @@ void Client::handleConnection()
 
     while (true)
     {
-        std::cout << "> ";
+        refreshLine();
         std::getline(std::cin, input);
         send(ClientSocket, input.c_str(), input.size(), 0);
     }
