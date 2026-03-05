@@ -38,12 +38,11 @@ class Server
 
     void broadcastMessage(const std::string &message, ClientSession *sender);
     void handleClient(ClientSession *client);
+    void awaitClientConnection();
+    void removeUser(ClientSession *client);
 
   private:
     std::mutex clientsMutex;
     std::vector<ClientSession *> clients;
     SOCKET listenSocket{};
-
-    void awaitClientConnection();
-    void removeUser(ClientSession *client);
 };
