@@ -37,6 +37,7 @@ class Server
     void start();
 
     void broadcastMessage(const std::string &message, ClientSession *sender);
+    void handleClient(ClientSession *client);
 
   private:
     std::mutex clientsMutex;
@@ -44,6 +45,5 @@ class Server
     SOCKET listenSocket{};
 
     void awaitClientConnection();
-    void handleClient(ClientSession *client);
     void removeUser(ClientSession *client);
 };
