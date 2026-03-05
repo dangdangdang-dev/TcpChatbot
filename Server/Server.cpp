@@ -102,7 +102,7 @@ void Server::broadcastMessage(const std::string &message, ClientSession *sender)
     }
 }
 
-// handle client input per thread
+// handle client per thread
 void Server::handleClient(ClientSession *client)
 {
     char recvbuf[DEFAULT_BUFLEN];
@@ -159,13 +159,7 @@ void Server::handleClient(ClientSession *client)
         // }
     }
     // cleanup
-    closesocket(client->ClientSocket);
-
-    std::lock_guard<std::mutex> lock(clientsMutex);
-    clients.erase(std::remove(clients.begin(), clients.end(), client), clients.end());
-
-    // raw pointer what the fuck
-    delete client;
+    removeUser(client);
 }
 
 void Server::awaitClientConnection()
@@ -193,4 +187,15 @@ void Server::awaitClientConnection()
         std::thread clientThread(&Server::handleClient, this, client);
         clientThread.detach();
     }
+}
+
+void Server::removeUser(ClientSession *client)
+{
+    std::cout << "Removing user: " << client->username << "\n";
+    shutdown(client->ClientSocket, SD_BOTH);
+    closesocket(client->ClientSocket);
+    std::lock_guard<std::mutex> lock(clientsMutex);
+    clients.erase(std::remove(clients.begin(), clients.end(), client), clients.end());
+    // raw pointer what the fuck
+    delete client;
 }

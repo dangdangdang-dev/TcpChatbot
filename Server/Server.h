@@ -45,5 +45,5 @@ class Server
 
     void awaitClientConnection();
     void handleClient(ClientSession *client);
-    // void removeUser();
+    void removeUser(ClientSession *client);
 };

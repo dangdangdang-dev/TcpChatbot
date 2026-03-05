@@ -18,6 +18,13 @@
 #define DEFAULT_BUFLEN 512
 #define DEFAULT_PORT "27015"
 
+void disconnectServer(SOCKET ConnectSocket)
+{
+    std::cout << "disconnected from server" << "\n";
+    shutdown(ConnectSocket, SD_BOTH);
+    closesocket(ConnectSocket);
+}
+
 void receivedMessage(SOCKET ConnectSocket)
 {
     char recvbuf[DEFAULT_BUFLEN];
@@ -27,7 +34,10 @@ void receivedMessage(SOCKET ConnectSocket)
     {
         int bytesReveived = recv(ConnectSocket, recvbuf, recvbuflen, 0);
         if (bytesReveived <= 0)
+        {
+            disconnectServer(ConnectSocket);
             break;
+        }
 
         std::cout << "\n" << std::string(recvbuf, bytesReveived) << "\n";
     }
