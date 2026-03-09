@@ -5,3 +5,15 @@
 18	422	7947539128842971	C:/Users/User/source/repos/TcpChatbot/Server/out/build/x64-Debug/cmake_install.cmake	d671d4ab6ddb7e0e
 19	1473	7944070135120008	CMakeFiles/Server.dir/main.cpp.obj	65da25fbdfdb31c1
 26	1540	7944070135188352	CMakeFiles/Server.dir/ClientHandling.cpp.obj	41078c600123244c
+26	2213	7947546668109710	CMakeFiles/Server.dir/Server.cpp.obj	3f31880f7137bd32
+21	2222	7947546668051126	CMakeFiles/Server.dir/main.cpp.obj	65da25fbdfdb31c1
+30	2278	7947546668148778	CMakeFiles/Server.dir/ClientHandling.cpp.obj	41078c600123244c
+20	1683	7947546962526211	CMakeFiles/Server.dir/Server.cpp.obj	3f31880f7137bd32
+18	1667	7947548165753655	CMakeFiles/Server.dir/ClientHandling.cpp.obj	41078c600123244c
+23	1675	7947548165802483	CMakeFiles/Server.dir/TaskManager.cpp.obj	1318fdc428881b29
+1676	1922	7947548182325931	Server.exe	ccf917b94d22dfff
+24	1742	7947549460469717	CMakeFiles/Server.dir/TaskManager.cpp.obj	1318fdc428881b29
+20	1760	7947549460420876	CMakeFiles/Server.dir/ClientHandling.cpp.obj	41078c600123244c
+1761	1885	7947549477828834	Server.exe	ccf917b94d22dfff
+20	1637	7947551308371901	CMakeFiles/Server.dir/ClientHandling.cpp.obj	41078c600123244c
+1638	1757	7947551324556518	Server.exe	ccf917b94d22dfff

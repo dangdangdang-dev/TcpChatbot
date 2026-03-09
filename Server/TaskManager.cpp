@@ -36,7 +36,7 @@ void TaskManager::enqueue(std::unique_ptr<Task> task)
 {
     {
         std::lock_guard<std::mutex> lock(queueMutex);
-        taskQueue.push(task);
+        taskQueue.push(std::move(task));
     }
     condition.notify_one();
 };

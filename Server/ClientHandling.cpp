@@ -34,7 +34,7 @@ void Server::handleClient(ClientSession *client)
         std::string username(recvbuf, iResult);
         client->username = username;
         std::string announcement = username + " has join the room";
-        broadcastMessage(announcement, client);
+        taskManager.enqueue(std::make_unique<BroadcastMessage>(this, announcement, client));
         break;
     }
 
@@ -44,14 +44,9 @@ void Server::handleClient(ClientSession *client)
         iResult = recv(client->ClientSocket, recvbuf, recvbuflen, 0);
         if (iResult <= 0)
             break;
-
         std::string message(recvbuf, iResult);
         message = client->username + ": " + message;
-        // broadcastMessage(message, client);
-
         taskManager.enqueue(std::make_unique<BroadcastMessage>(this, message, client));
-
-        continue;
     }
     // cleanup
     removeUser(client);
