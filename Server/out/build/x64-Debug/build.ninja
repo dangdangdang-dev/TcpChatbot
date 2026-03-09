@@ -73,6 +73,14 @@ build CMakeFiles\Server.dir\ClientHandling.cpp.obj: CXX_COMPILER__Server_unscann
   TARGET_COMPILE_PDB = CMakeFiles\Server.dir\
   TARGET_PDB = Server.pdb
 
+build CMakeFiles\Server.dir\TaskManager.cpp.obj: CXX_COMPILER__Server_unscanned_Debug C$:\Users\User\source\repos\TcpChatbot\Server\TaskManager.cpp || cmake_object_order_depends_target_Server
+  CONFIG = Debug
+  FLAGS = /DWIN32 /D_WINDOWS /W3 /GR /EHsc /MDd /Ob0 /Od /RTC1 -std:c++20 -ZI
+  OBJECT_DIR = CMakeFiles\Server.dir
+  OBJECT_FILE_DIR = CMakeFiles\Server.dir
+  TARGET_COMPILE_PDB = CMakeFiles\Server.dir\
+  TARGET_PDB = Server.pdb
+
 
 # =============================================================================
 # Link build statements for EXECUTABLE target Server
@@ -81,7 +89,7 @@ build CMakeFiles\Server.dir\ClientHandling.cpp.obj: CXX_COMPILER__Server_unscann
 #############################################
 # Link the executable Server.exe
 
-build Server.exe: CXX_EXECUTABLE_LINKER__Server_Debug CMakeFiles\Server.dir\main.cpp.obj CMakeFiles\Server.dir\Server.cpp.obj CMakeFiles\Server.dir\ClientHandling.cpp.obj
+build Server.exe: CXX_EXECUTABLE_LINKER__Server_Debug CMakeFiles\Server.dir\main.cpp.obj CMakeFiles\Server.dir\Server.cpp.obj CMakeFiles\Server.dir\ClientHandling.cpp.obj CMakeFiles\Server.dir\TaskManager.cpp.obj
   CONFIG = Debug
   FLAGS = /DWIN32 /D_WINDOWS /W3 /GR /EHsc /MDd /Ob0 /Od /RTC1 -ZI
   LINK_FLAGS = /machine:x64 /debug /INCREMENTAL /subsystem:console

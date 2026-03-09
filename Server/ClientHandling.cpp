@@ -1,9 +1,9 @@
 #include "Server.h"
+#include "TaskManager.h"
 
 // broadcast message to all client except sender
 void Server::broadcastMessage(const std::string &message, ClientSession *sender)
 {
-
     std::lock_guard<std::mutex> lock(clientsMutex);
     std::cout << message << "\n";
 
@@ -47,7 +47,10 @@ void Server::handleClient(ClientSession *client)
 
         std::string message(recvbuf, iResult);
         message = client->username + ": " + message;
-        broadcastMessage(message, client);
+        // broadcastMessage(message, client);
+
+        taskManager.enqueue(std::make_unique<BroadcastMessage>(this, message, client));
+
         continue;
     }
     // cleanup
@@ -73,8 +76,10 @@ void Server::awaitClientConnection()
 
         std::cout << username << "Client connected with socket" << ClientSocket << std::endl;
 
-        std::lock_guard<std::mutex> lock(clientsMutex);
-        clients.push_back(client);
+        {
+            std::lock_guard<std::mutex> lock(clientsMutex);
+            clients.push_back(client);
+        }
 
         std::thread clientThread(&Server::handleClient, this, client);
         clientThread.detach();
@@ -86,8 +91,10 @@ void Server::removeUser(ClientSession *client)
     std::cout << "Removing user: " << client->username << "\n";
     shutdown(client->ClientSocket, SD_BOTH);
     closesocket(client->ClientSocket);
-    std::lock_guard<std::mutex> lock(clientsMutex);
-    clients.erase(std::remove(clients.begin(), clients.end(), client), clients.end());
+    {
+        std::lock_guard<std::mutex> lock(clientsMutex);
+        clients.erase(std::remove(clients.begin(), clients.end(), client), clients.end());
+    }
     // raw pointer what the fuck
     delete client;
 }

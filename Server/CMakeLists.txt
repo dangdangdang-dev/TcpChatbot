@@ -12,7 +12,7 @@ endif()
 project ("Server")
 
 # Add source to this project's executable.
-add_executable (Server "main.cpp" "Server.cpp" "Server.h" "ClientHandling.cpp")
+add_executable (Server "main.cpp" "Server.cpp" "Server.h" "ClientHandling.cpp" "TaskManager.cpp" "TaskManager.h")
 
 if (CMAKE_VERSION VERSION_GREATER 3.12)
   set_property(TARGET Server PROPERTY CXX_STANDARD 20)

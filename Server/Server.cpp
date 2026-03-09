@@ -1,27 +1,16 @@
 #include "Server.h"
+#include "TaskManager.h"
 #include <WS2tcpip.h>
 #include <minwindef.h>
 #include <string>
 #include <winsock2.h>
 
 int _result;
-
-// WSA init
-WSA::WSA()
-{
-    _result = WSAStartup(MAKEWORD(2, 2), &wsaData);
-    if (_result != 0)
-        throw std::runtime_error("WSAStartup failed");
-}
-
-WSA::~WSA()
-{
-}
+int threadCount = 4;
 
 // Server init
-Server::Server(const std::string &port) : port(port)
+Server::Server(const std::string &port) : port(port), taskManager(threadCount)
 {
-    WSA wsaData;
     init();
 }
 
@@ -37,6 +26,14 @@ void Server::start()
 
 void Server::init()
 {
+
+    {
+        WSAData wsaData;
+        _result = WSAStartup(MAKEWORD(2, 2), &wsaData);
+        if (_result != 0)
+            throw std::runtime_error("WSAStartup failed");
+    }
+
     struct addrinfo *result = NULL, *ptr = NULL, hints{};
     int iResult;
 

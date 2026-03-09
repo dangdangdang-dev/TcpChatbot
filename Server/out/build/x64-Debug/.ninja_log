@@ -1,16 +1,7 @@
 # ninja log v6
-4	1380	7944065193279156	CMakeFiles/Server.dir/Server.cpp.obj	3f31880f7137bd32
-1544	1706	7944047766332691	Server.exe	7ec59bd72e0e8892
-4	159	7944066044613001	build.ninja	d671d4ab6ddb7e0e
-4	159	7944066044564164	C:/Users/User/source/repos/TcpChatbot/Server/out/build/x64-Debug/cmake_install.cmake	d671d4ab6ddb7e0e
-20	1469	7944047751093115	CMakeFiles/Server.dir/main.cpp.obj	65da25fbdfdb31c1
-18	422	7944066044613001	build.ninja	d671d4ab6ddb7e0e
-18	422	7944066044613001	C:/Users/User/source/repos/TcpChatbot/Server/out/build/x64-Debug/cmake_install.cmake	d671d4ab6ddb7e0e
-37	1644	7944066046039230	CMakeFiles/Server.dir/Server.cpp.obj	3f31880f7137bd32
-33	1664	7944066046009926	CMakeFiles/Server.dir/main.cpp.obj	65da25fbdfdb31c1
-41	1717	7944066046078277	CMakeFiles/Server.dir/ClientHandling.cpp.obj	41078c600123244c
-1717	1883	7944066062847181	Server.exe	e23e405f69b37064
-19	1473	7944070135120008	CMakeFiles/Server.dir/main.cpp.obj	65da25fbdfdb31c1
 22	1481	7944070135159047	CMakeFiles/Server.dir/Server.cpp.obj	3f31880f7137bd32
-26	1540	7944070135188352	CMakeFiles/Server.dir/ClientHandling.cpp.obj	41078c600123244c
 1541	1686	7944070150340039	Server.exe	e23e405f69b37064
+18	422	7947539128891839	build.ninja	d671d4ab6ddb7e0e
+18	422	7947539128842971	C:/Users/User/source/repos/TcpChatbot/Server/out/build/x64-Debug/cmake_install.cmake	d671d4ab6ddb7e0e
+19	1473	7944070135120008	CMakeFiles/Server.dir/main.cpp.obj	65da25fbdfdb31c1
+26	1540	7944070135188352	CMakeFiles/Server.dir/ClientHandling.cpp.obj	41078c600123244c
