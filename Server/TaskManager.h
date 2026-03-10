@@ -1,4 +1,5 @@
 #pragma once
+#include <iostream>
 #include <mutex>
 #include <queue>
 #include <thread>
@@ -27,7 +28,6 @@ class TaskManager
 
     void workerLoop();
     void enqueue(std::unique_ptr<Task> task);
-    void setUsername();
 
   private:
     std::vector<std::thread> workers;
@@ -47,10 +47,20 @@ struct Room
 struct BroadcastMessage : Task
 {
     std::string message;
-    ClientSession *sender;
+    std::shared_ptr<ClientSession> sender;
 
-    BroadcastMessage(Server *server, std::string &message, ClientSession *sender)
+    BroadcastMessage(Server *server, std::string &message, std::shared_ptr<ClientSession> sender)
         : Task(server), message(message), sender(sender) {};
+
+    void execute() override;
+};
+
+struct RemoveUser : Task
+{
+    std::shared_ptr<ClientSession> client;
+
+    RemoveUser(Server *server, std::shared_ptr<ClientSession> client)
+        : Task(server), client(client) {};
 
     void execute() override;
 };

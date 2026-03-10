@@ -29,12 +29,10 @@ class Server
     void init();
     void start();
 
-    void broadcastMessage(const std::string &message, ClientSession *sender);
-    void handleClient(ClientSession *client);
     void awaitClientConnection();
-    void removeUser(ClientSession *client);
     void recvLoop();
-    std::vector<ClientSession *> clients;
+    void setUsername(std::shared_ptr<ClientSession>);
+    std::vector<std::shared_ptr<ClientSession>> clients;
     std::mutex clientsMutex;
 
     TaskManager taskManager;

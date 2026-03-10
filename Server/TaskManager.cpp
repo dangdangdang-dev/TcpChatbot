@@ -3,6 +3,7 @@
 #include <iostream>
 #include <memory>
 #include <mutex>
+#include <winsock2.h>
 
 TaskManager::TaskManager(size_t threadCount) : stop(false)
 {
@@ -46,7 +47,7 @@ void BroadcastMessage::execute()
     std::lock_guard<std::mutex> lock(server->clientsMutex);
     std::cout << message << "\n";
 
-    for (auto client : server->clients)
+    for (auto &client : server->clients)
     {
         if (client->ClientSocket != sender->ClientSocket)
         {
@@ -69,4 +70,17 @@ TaskManager::~TaskManager()
         if (workers[i].joinable())
             workers[i].join();
     }
+}
+
+void RemoveUser::execute()
+{
+    std::lock_guard<std::mutex> lock(server->clientsMutex);
+
+    shutdown(client->ClientSocket, SD_BOTH);
+    closesocket(client->ClientSocket);
+
+    server->clients.erase(std::remove(server->clients.begin(), server->clients.end(), client),
+                          server->clients.end());
+
+    std::cout << client->username << " has disconnected\n";
 }

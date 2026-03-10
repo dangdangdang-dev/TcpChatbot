@@ -24,8 +24,7 @@ void Server::start()
 {
     std::thread recvThread(&Server::recvLoop, this);
     recvThread.detach();
-    // std::thread connectThread(&Server::awaitClientConnection, this);
-    // connectThread.detach();
+
     awaitClientConnection();
 }
 
