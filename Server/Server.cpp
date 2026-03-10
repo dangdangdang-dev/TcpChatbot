@@ -3,6 +3,7 @@
 #include <WS2tcpip.h>
 #include <minwindef.h>
 #include <string>
+#include <thread>
 #include <winsock2.h>
 
 int _result;
@@ -21,6 +22,10 @@ Server::~Server()
 
 void Server::start()
 {
+    std::thread recvThread(&Server::recvLoop, this);
+    recvThread.detach();
+    // std::thread connectThread(&Server::awaitClientConnection, this);
+    // connectThread.detach();
     awaitClientConnection();
 }
 
@@ -58,8 +63,9 @@ void Server::init()
         freeaddrinfo(result);
         WSACleanup();
     }
-
     // disable ipv6 only
+    u_long mode = 1;
+    ioctlsocket(listenSocket, FIONBIO, &mode);
     int no = 0;
     setsockopt(listenSocket, IPPROTO_IPV6, IPV6_V6ONLY, (char *)&no, sizeof(no));
 

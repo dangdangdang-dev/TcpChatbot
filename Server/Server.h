@@ -33,6 +33,7 @@ class Server
     void handleClient(ClientSession *client);
     void awaitClientConnection();
     void removeUser(ClientSession *client);
+    void recvLoop();
     std::vector<ClientSession *> clients;
     std::mutex clientsMutex;
 

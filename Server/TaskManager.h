@@ -27,6 +27,7 @@ class TaskManager
 
     void workerLoop();
     void enqueue(std::unique_ptr<Task> task);
+    void setUsername();
 
   private:
     std::vector<std::thread> workers;
