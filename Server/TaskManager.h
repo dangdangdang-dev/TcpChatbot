@@ -14,9 +14,10 @@ struct Task
 {
   protected:
     Server *server;
+    std::shared_ptr<ClientSession> client;
 
   public:
-    Task(Server *server) : server(server) {};
+    Task(Server *server, std::shared_ptr<ClientSession> client) : server(server), client(client) {};
     virtual ~Task() = default;
     virtual void execute() = 0;
 };
@@ -43,36 +44,52 @@ class TaskManager
 struct BroadcastMessage : Task
 {
     std::string message;
-    std::shared_ptr<ClientSession> sender;
 
-    BroadcastMessage(Server *server, std::string &message, std::shared_ptr<ClientSession> sender)
-        : Task(server), message(message), sender(sender) {};
+    BroadcastMessage(Server *server, std::string &message, std::shared_ptr<ClientSession> client)
+        : Task(server, client), message(message) {};
 
     void execute() override;
 };
 
 struct RemoveUser : Task
 {
-    std::shared_ptr<ClientSession> client;
-
-    RemoveUser(Server *server, std::shared_ptr<ClientSession> client)
-        : Task(server), client(client) {};
+    RemoveUser(Server *server, std::shared_ptr<ClientSession> client) : Task(server, client) {};
 
     void execute() override;
 };
 
-struct getRoom : Task
+// ROOM TASK STRUCT
+
+struct RoomTask : Task
 {
+    RoomTask(Server *server, std::shared_ptr<ClientSession> client, const std::string &roomName)
+        : Task(server, client), roomName(roomName) {};
+    const std::string &roomName;
 };
 
-struct joinRoom : Task
+struct JoinRoom : RoomTask
 {
-    joinRoom(Server *server, std::shared_ptr<ClientSession> client,
-             std::vector<std::shared_ptr<ClientSession>> room)
-        : Task(server), client(client), room(room) {};
+    JoinRoom(Server *server, std::shared_ptr<ClientSession> client, const std::string &roomName)
+        : RoomTask(server, client, roomName) {};
 
-    std::shared_ptr<ClientSession> client;
-    std::vector<std::shared_ptr<ClientSession>> room;
+  private:
+    void execute() override;
+};
 
+struct QuitRoom : Task
+{
+    QuitRoom(Server *server, std::shared_ptr<ClientSession> client, const std::string &roomName)
+        : Task(server, client) {};
+
+  private:
+    void execute() override;
+};
+
+struct CreateRoom : RoomTask
+{
+    CreateRoom(Server *server, std::shared_ptr<ClientSession> client, const std::string &roomName)
+        : RoomTask(server, client, roomName) {};
+
+  private:
     void execute() override;
 };

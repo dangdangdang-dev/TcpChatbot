@@ -3,6 +3,7 @@
 #include <iostream>
 #include <memory>
 #include <mutex>
+#include <string>
 #include <vector>
 #include <winsock2.h>
 
@@ -27,8 +28,7 @@ void Server::recvLoop()
             if (result > 0)
             {
                 std::string message(recvbuf, result);
-                message = client->username + ": " + message;
-                taskManager.enqueue(std::make_unique<BroadcastMessage>(this, message, client));
+                processMessage(client, message);
                 continue;
             }
 
@@ -98,8 +98,59 @@ void Server::setUsername(std::shared_ptr<ClientSession> client)
             break;
         std::string username(recvbuf, iResult);
         client->username = username;
-        std::string announcement = username + " has join the room";
-        taskManager.enqueue(std::make_unique<BroadcastMessage>(this, announcement, client));
         break;
+    }
+}
+
+void Server::processMessage(std::shared_ptr<ClientSession> client, std::string &message)
+{
+    if (isCommand(message))
+    {
+        const Command &cmd = parseCommand(message);
+        const std::string &argument = getCommandArgument(message);
+        if (argument == "")
+            return;
+        handleCommand(client, cmd, argument);
+        return;
+    }
+    message = client->username + ": " + message;
+    taskManager.enqueue(std::make_unique<BroadcastMessage>(this, message, client));
+}
+
+std::string Server::getCommandArgument(const std::string &message)
+{
+    size_t pos = message.find(' ');
+    if (pos == std::string::npos)
+        return "";
+
+    return message.substr(pos + 1);
+}
+
+void Server::handleCommand(std::shared_ptr<ClientSession> client, const Command &cmd,
+                           const std::string &argument)
+{
+    switch (cmd)
+    {
+    case Command::HELP:
+    {
+        std::string msg = "HELP JOIN QUIT";
+        send(client->ClientSocket, msg.c_str(), msg.size(), 0);
+        break;
+    }
+    case Command::JOIN:
+    {
+        taskManager.enqueue(std::make_unique<JoinRoom>(this, client, argument));
+    }
+    case Command::QUIT:
+    {
+        taskManager.enqueue(std::make_unique<QuitRoom>(this, client, argument));
+    }
+    case Command::CREATE:
+    {
+        taskManager.enqueue(std::make_unique<CreateRoom>(this, client, argument));
+    }
+    default:
+    case Command::NONE:
+        std::cout << "what the fuck" << std::endl;
     }
 }
