@@ -12,11 +12,23 @@
 #define DEFAULT_PORT "27015"
 #define DEFAULT_BUFLEN 512
 
+enum class ClientState
+{
+    PENDING_CONNECTION,
+};
+
 struct ClientSession
 {
     SOCKET ClientSocket;
     std::string username;
 };
+
+struct Room
+{
+    std::string name;
+    std::vector<std::shared_ptr<ClientSession>> clientList;
+};
+;
 
 class Server
 {
@@ -32,8 +44,12 @@ class Server
     void awaitClientConnection();
     void recvLoop();
     void setUsername(std::shared_ptr<ClientSession>);
-    std::vector<std::shared_ptr<ClientSession>> clients;
+
     std::mutex clientsMutex;
+    std::vector<std::shared_ptr<ClientSession>> clients;
+
+    std::mutex roomMutex;
+    std::vector<Room> rooms;
 
     TaskManager taskManager;
 

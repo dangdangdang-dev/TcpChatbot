@@ -42,20 +42,6 @@ void TaskManager::enqueue(std::unique_ptr<Task> task)
     condition.notify_one();
 };
 
-void BroadcastMessage::execute()
-{
-    std::lock_guard<std::mutex> lock(server->clientsMutex);
-    std::cout << message << "\n";
-
-    for (auto &client : server->clients)
-    {
-        if (client->ClientSocket != sender->ClientSocket)
-        {
-            send(client->ClientSocket, message.c_str(), message.size(), 0);
-        }
-    }
-}
-
 TaskManager::~TaskManager()
 {
     {
@@ -81,6 +67,29 @@ void RemoveUser::execute()
 
     server->clients.erase(std::remove(server->clients.begin(), server->clients.end(), client),
                           server->clients.end());
-
     std::cout << client->username << " has disconnected\n";
+}
+
+void BroadcastMessage::execute()
+{
+    std::lock_guard<std::mutex> lock(server->clientsMutex);
+    std::cout << message << "\n";
+
+    for (auto &client : server->clients)
+    {
+        if (client->ClientSocket != sender->ClientSocket)
+        {
+            send(client->ClientSocket, message.c_str(), message.size(), 0);
+        }
+    }
+}
+
+// ROOM TASK
+
+void joinRoom::execute()
+{
+    std::lock_guard<std::mutex> lock(server->roomMutex);
+    std::cout << client->username << " joining room" << std::endl;
+
+    room.push_back(client);
 }

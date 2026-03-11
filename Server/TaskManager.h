@@ -1,5 +1,6 @@
 #pragma once
 #include <iostream>
+#include <memory>
 #include <mutex>
 #include <queue>
 #include <thread>
@@ -7,6 +8,7 @@
 
 class Server;
 struct ClientSession;
+struct Room;
 
 struct Task
 {
@@ -38,12 +40,6 @@ class TaskManager
     bool stop;
 };
 
-struct Room
-{
-    std::string name;
-    std::vector<ClientSession *> clientList;
-};
-
 struct BroadcastMessage : Task
 {
     std::string message;
@@ -61,6 +57,22 @@ struct RemoveUser : Task
 
     RemoveUser(Server *server, std::shared_ptr<ClientSession> client)
         : Task(server), client(client) {};
+
+    void execute() override;
+};
+
+struct getRoom : Task
+{
+};
+
+struct joinRoom : Task
+{
+    joinRoom(Server *server, std::shared_ptr<ClientSession> client,
+             std::vector<std::shared_ptr<ClientSession>> room)
+        : Task(server), client(client), room(room) {};
+
+    std::shared_ptr<ClientSession> client;
+    std::vector<std::shared_ptr<ClientSession>> room;
 
     void execute() override;
 };
