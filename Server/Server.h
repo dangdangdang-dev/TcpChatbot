@@ -67,8 +67,8 @@ class Server
     std::mutex roomMutex;
     std::unordered_map<std::string, Room> rooms;
     void createRoom(const std::string roomName, std::shared_ptr<ClientSession> client);
-    void addUser(const std::string &roomName, std::shared_ptr<ClientSession> client);
-    void removeUser(const std::string &roomName, std::shared_ptr<ClientSession> client);
+    void addUser(const std::string roomName, std::shared_ptr<ClientSession> client);
+    void removeUser(const std::string roomName, std::shared_ptr<ClientSession> client);
 
     TaskManager taskManager;
 

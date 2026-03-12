@@ -51,6 +51,16 @@ struct BroadcastMessage : Task
     void execute() override;
 };
 
+struct NotifyUser : Task
+{
+    std::string message;
+
+    NotifyUser(Server *server, std::string &message, std::shared_ptr<ClientSession> client)
+        : Task(server, client), message(message) {};
+
+    void execute() override;
+};
+
 struct RemoveUser : Task
 {
     RemoveUser(Server *server, std::shared_ptr<ClientSession> client) : Task(server, client) {};
@@ -69,16 +79,17 @@ struct RoomTask : Task
 
 struct JoinRoom : RoomTask
 {
-    JoinRoom(Server *server, std::shared_ptr<ClientSession> client, const std::string &roomName)
+    JoinRoom(Server *server, std::shared_ptr<ClientSession> client, const std::string roomName)
         : RoomTask(server, client, roomName) {};
 
   private:
     void execute() override;
 };
 
-struct QuitRoom : Task
+struct QuitRoom : RoomTask
 {
-    QuitRoom(Server *server, std::shared_ptr<ClientSession> client) : Task(server, client) {};
+    QuitRoom(Server *server, std::shared_ptr<ClientSession> client, const std::string roomName)
+        : RoomTask(server, client, roomName) {};
 
   private:
     void execute() override;

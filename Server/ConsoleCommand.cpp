@@ -37,7 +37,7 @@ void Server::handleCommand(std::shared_ptr<ClientSession> client, const Command 
     }
     case Command::QUIT:
     {
-        taskManager.enqueue(std::make_unique<QuitRoom>(this, client));
+        taskManager.enqueue(std::make_unique<QuitRoom>(this, client, argument));
         break;
     }
     case Command::CREATE:

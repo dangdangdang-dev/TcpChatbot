@@ -45,6 +45,11 @@ void BroadcastMessage::execute()
     }
 }
 
+void NotifyUser::execute()
+{
+    send(client->ClientSocket, message.c_str(), message.size(), 0);
+}
+
 // ROOM TASK
 void CreateRoom::execute()
 {
@@ -61,5 +66,5 @@ void JoinRoom::execute()
 void QuitRoom::execute()
 {
     std::lock_guard<std::mutex> lock(server->roomMutex);
-    server->removeUser(client->currentRoom, client);
+    server->removeUser(roomName, client);
 }
