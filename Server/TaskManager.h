@@ -62,9 +62,9 @@ struct RemoveUser : Task
 
 struct RoomTask : Task
 {
-    RoomTask(Server *server, std::shared_ptr<ClientSession> client, const std::string &roomName)
+    RoomTask(Server *server, std::shared_ptr<ClientSession> client, const std::string roomName)
         : Task(server, client), roomName(roomName) {};
-    const std::string &roomName;
+    const std::string roomName;
 };
 
 struct JoinRoom : RoomTask
@@ -78,8 +78,7 @@ struct JoinRoom : RoomTask
 
 struct QuitRoom : Task
 {
-    QuitRoom(Server *server, std::shared_ptr<ClientSession> client, const std::string &roomName)
-        : Task(server, client) {};
+    QuitRoom(Server *server, std::shared_ptr<ClientSession> client) : Task(server, client) {};
 
   private:
     void execute() override;
@@ -87,7 +86,7 @@ struct QuitRoom : Task
 
 struct CreateRoom : RoomTask
 {
-    CreateRoom(Server *server, std::shared_ptr<ClientSession> client, const std::string &roomName)
+    CreateRoom(Server *server, std::shared_ptr<ClientSession> client, const std::string roomName)
         : RoomTask(server, client, roomName) {};
 
   private:

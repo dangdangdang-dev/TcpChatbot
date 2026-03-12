@@ -58,7 +58,7 @@ class Server
     bool isCommand(const std::string &message);
     Command parseCommand(const std::string &messsage);
     void handleCommand(std::shared_ptr<ClientSession> client, const Command &cmd,
-                       const std::string &argument);
+                       const std::string argument);
     std::string getCommandArgument(const std::string &message);
 
     std::mutex clientsMutex;
@@ -66,7 +66,7 @@ class Server
 
     std::mutex roomMutex;
     std::unordered_map<std::string, Room> rooms;
-    void createRoom(const std::string &roomName, std::shared_ptr<ClientSession> client);
+    void createRoom(const std::string roomName, std::shared_ptr<ClientSession> client);
     void addUser(const std::string &roomName, std::shared_ptr<ClientSession> client);
     void removeUser(const std::string &roomName, std::shared_ptr<ClientSession> client);
 

@@ -104,53 +104,19 @@ void Server::setUsername(std::shared_ptr<ClientSession> client)
 
 void Server::processMessage(std::shared_ptr<ClientSession> client, std::string &message)
 {
-    if (isCommand(message))
+    if (!isCommand(message))
     {
-        const Command &cmd = parseCommand(message);
-        const std::string &argument = getCommandArgument(message);
-        if (argument == "")
-            return;
-        handleCommand(client, cmd, argument);
+        message = client->username + ": " + message;
+        taskManager.enqueue(std::make_unique<BroadcastMessage>(this, message, client));
         return;
     }
-    message = client->username + ": " + message;
-    taskManager.enqueue(std::make_unique<BroadcastMessage>(this, message, client));
-}
 
-std::string Server::getCommandArgument(const std::string &message)
-{
-    size_t pos = message.find(' ');
-    if (pos == std::string::npos)
-        return "";
-
-    return message.substr(pos + 1);
-}
-
-void Server::handleCommand(std::shared_ptr<ClientSession> client, const Command &cmd,
-                           const std::string &argument)
-{
-    switch (cmd)
+    const Command cmd = parseCommand(message);
+    const std::string argument = getCommandArgument(message);
+    if (argument == "")
     {
-    case Command::HELP:
-    {
-        std::string msg = "HELP JOIN QUIT";
-        send(client->ClientSocket, msg.c_str(), msg.size(), 0);
-        break;
+        std::cout << "command need an argument";
+        return;
     }
-    case Command::JOIN:
-    {
-        taskManager.enqueue(std::make_unique<JoinRoom>(this, client, argument));
-    }
-    case Command::QUIT:
-    {
-        taskManager.enqueue(std::make_unique<QuitRoom>(this, client, argument));
-    }
-    case Command::CREATE:
-    {
-        taskManager.enqueue(std::make_unique<CreateRoom>(this, client, argument));
-    }
-    default:
-    case Command::NONE:
-        std::cout << "what the fuck" << std::endl;
-    }
+    handleCommand(client, cmd, argument);
 }

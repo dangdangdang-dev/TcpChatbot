@@ -21,15 +21,26 @@ void RemoveUser::execute()
 void BroadcastMessage::execute()
 {
     std::lock_guard<std::mutex> lock(server->roomMutex);
+
+    if (!client)
+        return;
+
     std::cout << message << "\n";
 
-    auto room = server->rooms[client->currentRoom].clientList;
+    auto pRoom = server->rooms.find(client->currentRoom);
 
-    for (auto &client : room)
+    if (pRoom == server->rooms.end())
+        return;
+
+    auto &roomClient = pRoom->second.clientList;
+
+    for (auto &otherClient : roomClient)
     {
-        if (client->ClientSocket != this->client->ClientSocket)
+        if (otherClient->ClientSocket != client->ClientSocket)
         {
-            send(client->ClientSocket, message.c_str(), message.size(), 0);
+            std::cout << client->username << " send a message in " << client->currentRoom
+                      << std::endl;
+            send(otherClient->ClientSocket, message.c_str(), message.size(), 0);
         }
     }
 }
@@ -50,5 +61,5 @@ void JoinRoom::execute()
 void QuitRoom::execute()
 {
     std::lock_guard<std::mutex> lock(server->roomMutex);
-    server->removeUser(client);
+    server->removeUser(client->currentRoom, client);
 }
