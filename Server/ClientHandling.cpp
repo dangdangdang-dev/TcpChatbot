@@ -1,24 +1,89 @@
 #include "Server.h"
+#include "TaskManager.h"
+#include <iostream>
+#include <memory>
+#include <mutex>
+#include <string>
+#include <vector>
+#include <winsock2.h>
 
-// broadcast message to all client except sender
-void Server::broadcastMessage(const std::string &message, ClientSession *sender)
+void Server::recvLoop()
 {
+    char recvbuf[DEFAULT_BUFLEN];
+    int iResult, iSendResult;
+    int recvbuflen = DEFAULT_BUFLEN;
 
-    std::lock_guard<std::mutex> lock(clientsMutex);
-    std::cout << message << "\n";
-
-    for (auto client : clients)
+    while (true)
     {
-        if (client->ClientSocket != sender->ClientSocket)
+        std::vector<std::shared_ptr<ClientSession>> snapshot;
         {
-            send(client->ClientSocket, message.c_str(), message.size(), 0);
+            std::lock_guard<std::mutex> lock(clientsMutex);
+            snapshot = clients;
+        }
+
+        for (auto &client : snapshot)
+        {
+            int result = recv(client->ClientSocket, recvbuf, recvbuflen, 0);
+
+            if (result > 0)
+            {
+                std::string message(recvbuf, result);
+                processMessage(client, message);
+                continue;
+            }
+
+            if (result == 0)
+            {
+                taskManager.enqueue(std::make_unique<RemoveUser>(this, client));
+                continue;
+            }
+
+            // result == SOCKET_ERROR
+            int err = WSAGetLastError();
+
+            if (err == WSAEWOULDBLOCK)
+                continue;
+
+            taskManager.enqueue(std::make_unique<RemoveUser>(this, client));
         }
     }
 }
 
-// handle client per thread
-void Server::handleClient(ClientSession *client)
+void Server::awaitClientConnection()
 {
+    std::cout << "awaiting connection on port : " << port << std::endl;
+
+    while (true)
+    {
+        SOCKET ClientSocket = accept(listenSocket, NULL, NULL);
+        if (ClientSocket == INVALID_SOCKET)
+        {
+            if (WSAGetLastError() != WSAEWOULDBLOCK)
+            {
+                printf("accept failed: %d\n", WSAGetLastError());
+            }
+            continue;
+        }
+
+        auto client = std::make_shared<ClientSession>();
+
+        client->ClientSocket = ClientSocket;
+        setUsername(client);
+
+        std::cout << client->username << "Client connected with socket" << client->ClientSocket
+                  << std::endl;
+
+        {
+            std::lock_guard<std::mutex> lock(clientsMutex);
+            clients.push_back(client);
+        }
+    }
+}
+
+void Server::setUsername(std::shared_ptr<ClientSession> client)
+{
+    std::string username;
+
     char recvbuf[DEFAULT_BUFLEN];
     int iResult, iSendResult;
     int recvbuflen = DEFAULT_BUFLEN;
@@ -33,61 +98,25 @@ void Server::handleClient(ClientSession *client)
             break;
         std::string username(recvbuf, iResult);
         client->username = username;
-        std::string announcement = username + " has join the room";
-        broadcastMessage(announcement, client);
         break;
     }
+}
 
-    // process message loop
-    while (true)
+void Server::processMessage(std::shared_ptr<ClientSession> client, std::string &message)
+{
+    if (!isCommand(message))
     {
-        iResult = recv(client->ClientSocket, recvbuf, recvbuflen, 0);
-        if (iResult <= 0)
-            break;
-
-        std::string message(recvbuf, iResult);
         message = client->username + ": " + message;
-        broadcastMessage(message, client);
-        continue;
+        taskManager.enqueue(std::make_unique<BroadcastMessage>(this, message, client));
+        return;
     }
-    // cleanup
-    removeUser(client);
-}
 
-void Server::awaitClientConnection()
-{
-    std::cout << "awaiting connection on port : " << port << std::endl;
-
-    std::string username;
-    while (true)
+    const Command cmd = parseCommand(message);
+    const std::string argument = getCommandArgument(message);
+    if (argument == "")
     {
-        SOCKET ClientSocket = accept(listenSocket, NULL, NULL);
-        if (ClientSocket == INVALID_SOCKET)
-        {
-            printf("accept failed: %d\n", WSAGetLastError());
-            continue;
-        }
-
-        ClientSession *client = new ClientSession();
-        client->ClientSocket = ClientSocket;
-
-        std::cout << username << "Client connected with socket" << ClientSocket << std::endl;
-
-        std::lock_guard<std::mutex> lock(clientsMutex);
-        clients.push_back(client);
-
-        std::thread clientThread(&Server::handleClient, this, client);
-        clientThread.detach();
+        std::cout << "command need an argument";
+        return;
     }
-}
-
-void Server::removeUser(ClientSession *client)
-{
-    std::cout << "Removing user: " << client->username << "\n";
-    shutdown(client->ClientSocket, SD_BOTH);
-    closesocket(client->ClientSocket);
-    std::lock_guard<std::mutex> lock(clientsMutex);
-    clients.erase(std::remove(clients.begin(), clients.end(), client), clients.end());
-    // raw pointer what the fuck
-    delete client;
+    handleCommand(client, cmd, argument);
 }
