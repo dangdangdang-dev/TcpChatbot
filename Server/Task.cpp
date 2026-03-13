@@ -43,6 +43,7 @@ void BroadcastMessage::execute()
             send(otherClient->ClientSocket, message.c_str(), message.size(), 0);
         }
     }
+    pRoom->second.messageHistory.push_back(message);
 }
 
 void NotifyUser::execute()
@@ -61,6 +62,7 @@ void JoinRoom::execute()
 {
     std::lock_guard<std::mutex> lock(server->roomMutex);
     server->addUser(roomName, client);
+    server->loadMessage(client);
 }
 
 void QuitRoom::execute()

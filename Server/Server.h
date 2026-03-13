@@ -28,6 +28,7 @@ struct ClientSession
 struct Room
 {
     std::vector<std::shared_ptr<ClientSession>> clientList;
+    std::vector<std::string> messageHistory;
 };
 
 enum class Command
@@ -69,6 +70,7 @@ class Server
     void createRoom(const std::string roomName, std::shared_ptr<ClientSession> client);
     void addUser(const std::string roomName, std::shared_ptr<ClientSession> client);
     void removeUser(const std::string roomName, std::shared_ptr<ClientSession> client);
+    void loadMessage(std::shared_ptr<ClientSession> client);
 
     TaskManager taskManager;
 

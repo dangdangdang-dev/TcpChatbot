@@ -72,3 +72,14 @@ void Server::removeUser(const std::string roomName, std::shared_ptr<ClientSessio
         rooms.erase(pRoom);
     }
 }
+
+void Server::loadMessage(std::shared_ptr<ClientSession> client)
+{
+    const auto &messageList = rooms[client->currentRoom].messageHistory;
+
+    for (auto message : messageList)
+    {
+        message = message + '\n';
+        send(client->ClientSocket, message.c_str(), message.size(), 0);
+    }
+}
